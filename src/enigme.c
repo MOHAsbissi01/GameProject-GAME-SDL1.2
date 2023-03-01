@@ -30,6 +30,7 @@ void afficherEnigme(enigme e, SDL_Surface *screen)
     SDL_Flip(screen);
 }
 
+//--------------------------------------------------------------------------------------
 void genererEnigme(puzzle *p, char *nomfichier)
 {
     // Open the file for reading
@@ -137,4 +138,73 @@ void genererEnigme(puzzle *p, char *nomfichier)
     }
     fclose(file);
 
+}
+
+//----------------------------------------------------------------------------
+
+
+void sauvegarder(personne p, background b, char *filename) {
+    FILE *f = fopen(filename, "w");
+    if (f == NULL) {
+        printf("Erreur d'ouverture du fichier %s\n", filename);
+        return;
+    }
+
+    // Write player's name and score to file
+    fprintf(f, "%s\n%d\n", p.nom, p.score);
+
+    // Write background image path to file
+    fprintf(f, "%s\n", b.image_path);
+
+    fclose(f);
+    printf("La partie a été sauvegardée dans le fichier %s\n", filename);
+}
+
+//----------------------------------------------------------------------------
+void charger(personne *p, background *b, char *filename) {
+    FILE *f = fopen(filename, "r");
+    if (f == NULL) {
+        fprintf(stderr, "Error: could not open file '%s' for reading.\n", filename);
+        return;
+    }
+
+    char buffer[MAX_BUFFER];
+    // Read player's name from first line
+    if (fgets(buffer, MAX_BUFFER, f) != NULL) {
+        buffer[strcspn(buffer, "\n")] = '\0'; // remove trailing newline
+        strncpy(p->nom, buffer, MAX_NOM);
+    }
+
+    // Read player's score from second line
+    if (fgets(buffer, MAX_BUFFER, f) != NULL) {
+        buffer[strcspn(buffer, "\n")] = '\0'; // remove trailing newline
+        p->score = atoi(buffer);
+    }
+
+    // Read background image filename from third line
+    if (fgets(buffer, MAX_BUFFER, f) != NULL) {
+        buffer[strcspn(buffer, "\n")] = '\0'; // remove trailing newline
+        load_background(b, buffer);
+    }
+
+    fclose(f);
+}
+//----------------------------------------------------------------------------
+void animerEnigme(enigme *e) {
+    SDL_Surface *surface = e->surface;
+    Uint32 *pixels = (Uint32 *) surface->pixels;
+    int width = surface->w;
+    int height = surface->h;
+
+    // Swap red and blue color channels for each pixel
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            Uint32 pixel = pixels[y * width + x];
+            Uint32 red = (pixel & 0x00FF0000) >> 16;
+            Uint32 blue = (pixel & 0x000000FF);
+            pixels[y * width + x] = (pixel & 0xFF00FF00) | (blue << 16) | red;
+        }
+    }
+
+    SDL_UpdateRect(surface, 0, 0, width, height);
 }
