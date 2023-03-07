@@ -143,24 +143,6 @@ void genererEnigme(enigme *e, char *filename_question, char *filename_reponse1, 
     }
 }
 
-// save and load enigma submenu
-
-void sauvegarder(personne p, background b, char *filename)
-{ 
-    FILE *f = NULL;
-    f = fopen(filename, "w");
-    if (f != NULL)
-    {
-        fprintf(f
-
-    }
-
-}
-
-void charger(personne *p, background *b, char *filename)
-{
-
-}
 
 
 

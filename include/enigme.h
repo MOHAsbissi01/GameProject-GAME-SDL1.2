@@ -33,9 +33,9 @@ typedef struct enigme
 
 typedef struct personne
 {
-    int time ;
+   
     int score;
-    int vie;
+   
 } personne;
 
 
