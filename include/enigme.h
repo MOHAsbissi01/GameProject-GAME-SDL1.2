@@ -9,46 +9,44 @@ typedef struct enigme
     char reponse1[50];
     char reponse2[50];
     char reponse3[50];
-    int correct_answer;
-    SDL_Surface *enigme_surf;
-    SDL_Rect enigme_pos;
-} enigme;
+
+    SDL_Surface *question;
+    SDL_Surface *reponse1;
+    SDL_Surface *reponse2 ;
+    SDL_Surface *reponse3 ;
+    SDL_Surface *enigmebackground;
+
+    SDL_Rect position_question;
+    SDL_Rect position_reponse1;
+    SDL_Rect position_reponse2;
+    SDL_Rect position_reponse3;
+    SDL_Rect position_enigmebackground;
+
+    SDL_Color color = {0, 0, 0};
+    
+    TTF_Font *font ; 
+
+    SDL_Surface *enigme_surf; // surface enigme
+  
+} enigme; 
+
 
 typedef struct personne
 {
-    char nom[20];
+    int time ;
     int score;
+    int vie;
 } personne;
 
-typedef struct background
-{
-    SDL_Surface *bg_surf;
-    SDL_Rect bg_pos;
-} background;
-
-typedef struct puzzle
-{
-    char question[100];
-    char reponse1[50];
-    char reponse2[50];
-    char reponse3[50];
-} puzzle;
 
 void afficherEnigme(enigme e, SDL_Surface *screen);
-/* This function displays the puzzle on the given screen surface. */
 
-void genererEnigme(puzzle *p, char *nomfichier);
-/* This function randomly generates a puzzle by selecting a line from the given file as the question and 
-   three other random lines as the possible answers, with the correct answer also chosen randomly. */
+void genererEnigme(enigme *e, char *filename_question, char *filename_reponse1, char *filename_reponse2, char *filename_reponse3)
 
 void sauvegarder(personne p, background b, char *filename);
-/* This function saves the current game state, including the player's name and score and the background image, 
-   to the given file. */
 
 void charger(personne *p, background *b, char *filename);
-/* This function loads the game state from the given file, updating the player's name and score and the background image. */
 
 void animerEnigme(enigme *e);
-/* This function animates the puzzle by swapping its surface's red and blue color channels. */
 
-#endif /* ENIGMA_H */
+#endif 
