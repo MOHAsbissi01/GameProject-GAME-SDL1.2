@@ -8,7 +8,7 @@
 #include <SDL/SDL_image.h> //for loading images
 #include <SDL/SDL_ttf.h>   //for loading fonts
 #include <SDL/SDL_mixer.h> //for loading sounds
-
+//#include <SDL/SDL_rotozoom.h> //for rotating images
 // including the headers
 
 #include "../include/menu.h"     //menu header
@@ -16,6 +16,7 @@
 #include "../include/text.h"     //text header
 #include "../include/stars.h"    //stars header
 #include "../include/settings.h" //settings header
+#include "../include/enigma.h"   //enigma header
 
 // screen
 SDL_Surface *screen;
@@ -26,7 +27,7 @@ SDL_Surface *screen;
 #define STARS_LAYERS 4  // number of stars variations
 #define DELTA_TIME 16   // 1000ms / 60fps = 16.6666
 
-//* regular -> hovered -> clicked
+//* regular ->'then' hovered ->'then' clicked
 // images (_C for clicked) (_H for hovered)
 // main menu images
 image background;
@@ -76,6 +77,7 @@ int StopTheGame = 0;        // stop the game, if StopTheGame = 1 -> loop = 0
 int UI = 0;                 // UI = 0 -> main menu, UI = 1 -> settings menu, UI = 2 -> game
 int volume = 64;            // volume of the music (0 - 128)
 bool muteButtonOn = false;  // mute button state
+bool enigma = false ;      // enigma state
 
 /*
 ********************
@@ -157,6 +159,9 @@ int main()
     imageLoad_lvlmenutitle(&startMenuTitle);
     imageLoad_lvl1(&lvl1);
 
+    // loading enigma
+
+
     // uint32 return time in milliseconds
     Uint32 last_time = SDL_GetTicks();
 
@@ -215,6 +220,9 @@ int main()
                         selectedButton = (selectedButton + 1) % 3;
                         anim_B = selectedButton;
                         break;
+                    case SDLK_g:
+                    enigma = true;
+                        break;   
                     case SDLK_RETURN:
                         switch (selectedButton)
                         {
