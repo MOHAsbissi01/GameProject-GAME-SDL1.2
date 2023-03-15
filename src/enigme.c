@@ -1,245 +1,86 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
 #include "enigme.h"
+#define MAX_LEN 18 
 
-#define ENIGME_WIDTH 400
-#define ENIGME_HEIGHT 300
-#define ANSWER_WIDTH 200
-#define ANSWER_HEIGHT 50
-#define FONT_SIZE 24
-
-
-
-
-
-void afficherEnigme(enigme e, SDL_Surface *screen)
-{
-    // load font
-    TTF_Font *font = TTF_OpenFont("../assets/font/test.ttf", 24);
-    if (font == NULL)
-    {
-        printf("TTF_OpenFont: %s\n", TTF_GetError());
-        return; // Exit the function if font loading fails
-
-        //maybe we should delete this
-        txt->color.r = 255; // red
-        txt->color.g = 255; // green
-        txt->color.b = 255; // blue
-
-    }
-
-    // load enigmebackground
-    SDL_Surface *enigmebackground = IMG_Load("enigmebackground.png");
-    if (enigmebackground == NULL)
-    {
-        printf("IMG_Load: %s\n", IMG_GetError());
-        TTF_CloseFont(font); // Free the loaded font before exiting the function
-        return; // Exit the function if image loading fails
-    }
-
-    // load question
-    SDL_Color textColor = { e.color.r, e.color.g, e.color.b }; // Convert enigma color to SDL_Color
-    SDL_Surface *question = TTF_RenderText_Solid(font, e.question, textColor);
-    if (question == NULL)
-    {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        SDL_FreeSurface(enigmebackground); // Free loaded surfaces before exiting the function
-        TTF_CloseFont(font);
-        return; // Exit the function if question loading fails
-    }
-
-    // load answer1
-    SDL_Surface *reponse1 = TTF_RenderText_Solid(font, e.reponse1, textColor);
-    if (reponse1 == NULL)
-    {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        SDL_FreeSurface(enigmebackground);
-        SDL_FreeSurface(question); // Free previously loaded surfaces before exiting the function
-        TTF_CloseFont(font);
-        return; // Exit the function if answer1 loading fails
-    }
-
-    // load answer2
-    SDL_Surface *reponse2 = TTF_RenderText_Solid(font, e.reponse2, textColor);
-    if (reponse2 == NULL)
-    {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        SDL_FreeSurface(enigmebackground);
-        SDL_FreeSurface(question);
-        SDL_FreeSurface(reponse1); // Free previously loaded surfaces before exiting the function
-        TTF_CloseFont(font);
-        return; // Exit the function if answer2 loading fails
-    }
-
-    // load answer3
-    SDL_Surface *reponse3 = TTF_RenderText_Solid(font, e.reponse3, textColor);
-    if (reponse3 == NULL)
-    {
-        printf("TTF_RenderText_Solid: %s\n", TTF_GetError());
-        SDL_FreeSurface(enigmebackground);
-        SDL_FreeSurface(question);
-        SDL_FreeSurface(reponse1);
-        SDL_FreeSurface(reponse2); // Free previously loaded surfaces before exiting the function
-        TTF_CloseFont(font);
-        return; // Exit the function if answer3 loading fails
-    }
-
-    // draw enigmebackground
-    SDL_Rect position_enigmebackground;
-    position_enigmebackground.x = (screen->w - ENIGME_WIDTH) / 2;
-    position_enigmebackground.y = (screen->h - ENIGME_HEIGHT) / 2;
-    SDL_BlitSurface(enigmebackground, NULL, screen, &position_enigmebackground);
-
-    // draw question
-    SDL_Rect position_question;
-    position_question.x = (screen->w - question->w) / 2;
-    position_question.y = (screen->h - question->h) / 2 - 200;
-    SDL_BlitSurface(question, NULL, screen, &position_question);
-
-    // draw answer1
-    SDL_Rect position_reponse1;
-    position_reponse1.x = (screen->w - reponse1->w) / 2;
-    position_reponse1.y = (screen->h - reponse1->h) / 2 - 100;
-    SDL_BlitSurface(reponse1, NULL, screen, &position_reponse1);
-
-    // draw answer2
-    SDL_Rect position_reponse2;
-    position_reponse2.x = (screen->w - reponse2->w) / 2;
-    position_reponse2.y = (screen->h - reponse2->h) / 2;
-    SDL_BlitSurface(reponse2, NULL, screen, &position_reponse2);
-
-    // draw answer3
-    SDL_Rect position_reponse3;
-    position_reponse3.x = (screen->w - reponse3->w) / 2;
-    position_reponse3.y = (screen->h - reponse3->h) / 2 + 100;
-    SDL_BlitSurface(reponse3, NULL, screen, &position_reponse3);
-
-    // free surfaces
-    SDL_FreeSurface(enigmebackground);
-    SDL_FreeSurface(question);
-    SDL_FreeSurface(reponse1);
-    SDL_FreeSurface(reponse2);
-    SDL_FreeSurface(reponse3);
-    TTF_CloseFont(font);
+void afficherEnigme(Enigme e, SDL_Surface *screen) {
+    SDL_BlitSurface(e.question_surf, NULL, screen, &e.question_pos);
+    SDL_BlitSurface(e.reponse1_surf, NULL, screen, &e.reponse1_pos);
+    SDL_BlitSurface(e.reponse2_surf, NULL, screen, &e.reponse2_pos);
+    SDL_BlitSurface(e.reponse3_surf, NULL, screen, &e.reponse3_pos);
+    SDL_Flip(screen);
 }
+void genererEnigme(Enigme *p, char *nomfichier) {
+    // ouvrir le fichier en mode lecture
+    FILE* fichier = fopen(nomfichier, "r");
 
-
-//--------------------------------------------------------------
-
-
-void genererEnigme(enigme *e, char *filename_question, char *filename_reponse1, char *filename_reponse2, char *filename_reponse3)
-{
-    // Seed the random number generator
-    srand(time(NULL));
-
-    // Open the files
-    FILE *fp_question = fopen(filename_question, "r");
-    FILE *fp_reponse1 = fopen(filename_reponse1, "r");
-    FILE *fp_reponse2 = fopen(filename_reponse2, "r");
-    FILE *fp_reponse3 = fopen(filename_reponse3, "r");
-
-    // Check if files are open
-    if (fp_question == NULL || fp_reponse1 == NULL || fp_reponse2 == NULL || fp_reponse3 == NULL)
-    {
-        fprintf(stderr, "Error opening files!\n");
-        exit(1);
+    if (fichier == NULL) {
+        printf("Erreur lors de l'ouverture du fichier %s.\n", nomfichier);
+        exit(EXIT_FAILURE);
     }
 
-    // Read lines from the files and store them in arrays
-    char question[100], reponse1[50], reponse2[50], reponse3[50];
-    char *questions[100], *reponses[3][50];
-    int num_questions = 0, num_reponses = 0;
-
-    while (fgets(question, 100, fp_question))
-    {
-        // Remove newline character from the end of the line
-        question[strlen(question) - 1] = '\0';
-
-        // Store question in array
-        questions[num_questions++] = strdup(question);
-    }
-
-    while (fgets(reponse1, 50, fp_reponse1) &&
-           fgets(reponse2, 50, fp_reponse2) &&
-           fgets(reponse3, 50, fp_reponse3))
-    {
-        // Remove newline character from the end of the line
-        reponse1[strlen(reponse1) - 1] = '\0';
-        reponse2[strlen(reponse2) - 1] = '\0';
-        reponse3[strlen(reponse3) - 1] = '\0';
-
-        // Store responses in array
-        reponses[0][num_reponses] = strdup(reponse1);
-        reponses[1][num_reponses] = strdup(reponse2);
-        reponses[2][num_reponses++] = strdup(reponse3);
-    }
-
-    // Choose a random question and its corresponding answers
-    int index = rand() % num_questions;
-
-    strcpy(e->question_text, questions[index]);
-    strcpy(e->reponse1, reponses[0][index]);
-    strcpy(e->reponse2, reponses[1][index]);
-    strcpy(e->reponse3, reponses[2][index]);
-
-    // Free the dynamically allocated memory
-    for (int i = 0; i < num_questions; i++)
-        free(questions[i]);
-
-    for (int i = 0; i < num_reponses; i++)
-    {
-        free(reponses[0][i]);
-        free(reponses[1][i]);
-        free(reponses[2][i]);
-    }
-
-    // Close the files
-    fclose(fp_question);
-    fclose(fp_reponse1);
-    fclose(fp_reponse2);
-    fclose(fp_reponse3);
-}
-
-//-------------------------------------------//
-
-void animerEnigme(enigme *e) {
-    int speed = 5;
-    int max_x = 800;
-    int min_x = -e->position_enigmebackground.w;
-
-    int x = e->position_enigmebackground.x;
-    int y = e->position_enigmebackground.y;
-
-    SDL_Rect src_rect = {0, 0, e->position_enigmebackground.w, e->position_enigmebackground.h};
-    SDL_Rect dest_rect = {x, y, e->position_enigmebackground.w, e->position_enigmebackground.h};
-
-    Uint32 start_time = SDL_GetTicks();
-
-    while (SDL_GetTicks() - start_time < 5000) { // animate for 5 seconds
-        SDL_Delay(20); // add a small delay to control the speed of the animation
-
-        // move the background
-        x += speed;
-        if (x > max_x) {
-            x = min_x;
+    // compter le nombre de lignes dans le fichier
+    int nb_lignes = 0;
+    char c;
+    while ((c = fgetc(fichier)) != EOF) {
+        if (c == '\n') {
+            nb_lignes++;
         }
-        dest_rect.x = x;
-
-        // clear the screen
-        SDL_FillRect(SDL_GetVideoSurface(), NULL, SDL_MapRGB(SDL_GetVideoSurface()->format, 255, 255, 255));
-
-        // draw the background and other surfaces
-        SDL_BlitSurface(e->enigmebackground, &src_rect, SDL_GetVideoSurface(), &dest_rect);
-        SDL_BlitSurface(e->question, NULL, SDL_GetVideoSurface(), &e->position_question);
-        SDL_BlitSurface(e->reponse1, NULL, SDL_GetVideoSurface(), &e->position_reponse1);
-        SDL_BlitSurface(e->reponse2, NULL, SDL_GetVideoSurface(), &e->position_reponse2);
-        SDL_BlitSurface(e->reponse3, NULL, SDL_GetVideoSurface(), &e->position_reponse3);
-
-        SDL_Flip(SDL_GetVideoSurface());
     }
+
+    // choisir aléatoirement une ligne pour l'énigme
+    srand(time(NULL)); // initialiser le générateur de nombres aléatoires
+    int ligne_aleatoire = rand() % (nb_lignes / 4) + 1;
+
+    // se placer à la ligne correspondante dans le fichier
+    fseek(fichier, (ligne_aleatoire - 1) * 4 * MAX_LEN, SEEK_SET);
+
+    // lire les 4 lignes correspondant à l'énigme
+    char question[MAX_LEN], reponse1[MAX_LEN], reponse2[MAX_LEN], reponse3[MAX_LEN];
+    int numbr;
+    fscanf(fichier, "question: %s\n", question);
+    fscanf(fichier, "reponse1: %s\n", reponse1);
+    fscanf(fichier, "reponse2: %s\n", reponse2);
+    fscanf(fichier, "reponse3: %s\n", reponse3);
+    fscanf(fichier, "numbr: %d\n", &numbr);
+
+    // fermer le fichier
+    fclose(fichier);
+
+    // initialiser la structure Enigme
+    p->question = question;
+    p->reponse1 = reponse1;
+    p->reponse2 = reponse2;
+    p->reponse3 = reponse3;
+    p->numbr = numbr;
+    p->etat = 0; // non encore résolu
+  
+    // initialiser les positions des surfaces
+    p->question_pos.x = 0;
+    p->question_pos.y = 0;
+    p->reponse1_pos.x = 0;
+    p->reponse1_pos.y = 100;
+    p->reponse2_pos.x = 0;
+    p->reponse2_pos.y = 200;
+    p->reponse3_pos.x = 0;
+    p->reponse3_pos.y = 300;
+    //white color
+    p->question_color = (SDL_Color) { 255, 255, 255, 255 };
+    p->reponse_color = (SDL_Color) { 255, 255, 255, 255 };
+    p->reponse_color = (SDL_Color) { 255, 255, 255, 255 };
+    p->reponse_color = (SDL_Color) { 255, 255, 255, 255 };
+
+    /* Initialiser les surfaces de texte */
+    p->question_surf = TTF_RenderText_Blended(p->font, p->question, p->question_color);
+    p->reponse1_surf = TTF_RenderText_Blended(p->font, p->reponse1, p->reponse_color);
+    p->reponse2_surf = TTF_RenderText_Blended(p->font, p->reponse2, p->reponse_color);
+    p->reponse3_surf = TTF_RenderText_Blended(p->font, p->reponse3, p->reponse_color);
+
+    /* Initialiser l'état de l'énigme */
+        p->etat = 0;
 }
 
 
+
+s
