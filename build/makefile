@@ -1,12 +1,18 @@
 CC = gcc
-CFLAGS = -Wall -I../include
-LDFLAGS = -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf
-OBJS = main.o menu.o music.o text.o stars.o settings.o start.o
+CFLAGS = -Wall -Wextra -std=c99
+LDFLAGS = -lSDL -lSDL_ttf -lSDL_mixer -lSDL_image
+
+SRCS = main.c enigme.c
+OBJS = $(SRCS:.c=.o)
+
+all: game
+
 game: $(OBJS)
-	$(CC) $(OBJS) $(LDFLAGS) -o game
-%.o: ../src/%.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+%.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-.PHONY: clean
 clean:
 	rm -f $(OBJS) game
+
